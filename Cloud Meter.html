@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cloud Meter</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E8D9C2;--panel:#FDECD4;--ink:#1B1A33;--mute:#6b6252;--or:#FF7230;--gr:#A5C46B;--rd:#E8294A;--bl:#3F6FC4;--ye:#F2B33D;--field:#FFF6E8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a2520;--panel:#F6E3C6}}
+:root[data-theme="dark"]{--bg:#2a2520;--panel:#F6E3C6}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Space Mono",ui-monospace,Menlo,monospace;min-height:100vh;display:flex;justify-content:center;padding:20px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--bl);outline-offset:2px}
+#app{width:100%;max-width:1180px;border:2px solid var(--ink);background:var(--panel);display:flex;min-height:640px}
+nav{width:92px;border-right:2px solid var(--ink);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px;flex:none}
+nav .logo{margin-bottom:14px}
+nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:8px 4px;width:100%;cursor:pointer;border-left:4px solid transparent}
+nav button[aria-current=page]{border-left-color:var(--or);background:#fff4e2;font-weight:700}
+nav .sp{flex:1}
+nav svg{width:22px;height:22px;fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+main{flex:1;padding:24px;min-width:0}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 20px;font-size:12px}
+.box{border:1.5px solid var(--ink);background:var(--field);padding:16px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.kpi b{display:block;font-size:24px;margin-top:4px}.kpi span{font-size:12px;color:var(--mute)}
+.btn{background:var(--or);border:1.5px solid var(--ink);padding:10px 16px;cursor:pointer;font-weight:700}
+.btn:hover{background:#ff8a52}.btn.ghost{background:var(--field)}
+input,select,textarea{border:1.5px solid var(--ink);background:var(--field);padding:10px;width:100%}
+label{display:block;font-size:12px;margin:10px 0 4px}
+.err{color:var(--rd);font-size:12px;min-height:18px;margin:4px 0}
+.ok{color:#2f6b2f;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--ink);font-size:13px}th{font-size:12px;border-bottom:2px solid var(--ink)}
+.wrap{overflow-x:auto}
+.tag{display:inline-block;border:1.5px solid var(--ink);padding:1px 8px;font-size:12px;font-weight:700}
+.t-ok{background:var(--gr)}.t-warn{background:var(--ye)}.t-bad{background:var(--rd);color:#fff}.t-na{background:#ddd}
+.bar{height:16px;border:1.5px solid var(--ink);background:var(--field);position:relative;margin:6px 0}
+.bar i{display:block;height:100%}.bar u{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+.login{flex:1;display:grid;grid-template-columns:1fr 1fr;margin:24px;border:1.5px solid var(--ink)}
+.login .art{border-right:1.5px solid var(--ink);padding:28px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.login .art svg{width:100%;max-width:320px;border:1.5px solid var(--ink);background:var(--panel)}
+.login form{padding:32px;display:flex;flex-direction:column;justify-content:center}
+.login h1{text-align:center;margin-bottom:18px}
+.pw{position:relative}.pw button{position:absolute;right:6px;top:6px;border:0;background:none;cursor:pointer;padding:4px 8px}
+.denied{text-align:center;padding:48px}
+@media(max-width:760px){body{padding:0}#app{flex-direction:column-reverse;border-width:0}nav{width:100%;flex-direction:row;border-right:0;border-top:2px solid var(--ink);padding:0;justify-content:space-around;position:sticky;bottom:0;background:var(--panel)}nav .logo,nav .sp{display:none}nav button{border-left:0;border-top:4px solid transparent;padding:8px 2px;font-size:10px}nav button[aria-current=page]{border-top-color:var(--or)}.login{grid-template-columns:1fr;margin:0;border:0}.login .art{display:none}}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .6s}}
+</style></head><body>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s);
+const ic={home:'<path d="M3 11l9-7 9 7v9H3z"/>',res:'<rect x="3" y="4" width="18" height="6"/><rect x="3" y="14" width="18" height="6"/><path d="M7 7h.01M7 17h.01"/>',bud:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10c0-2 6-2 6 0s-6 2-6 4 6 2 6 0"/>',rep:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',out:'<path d="M9 21H4V3h5M16 17l5-5-5-5M21 12H9"/>'};
+const I=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ic[k]}</svg>`;
+const fmt=n=>'₹'+Number(n).toLocaleString('en-IN');
+const seed=()=>({teams:[{id:'Development',budget:100000},{id:'Testing',budget:60000},{id:'Data Services',budget:80000}],
+res:[['VM-001','Virtual Server','Development',12500],['VM-002','Virtual Server','Development',18000],['ST-001','Storage Bucket','Development',4200],['DB-001','Database','Development',22000],['VM-003','Virtual Server','Development',25300],['VM-101','Virtual Server','Testing',15000],['ST-101','Storage Bucket','Testing',6000],['DB-101','Database','Testing',14000],['DB-201','Database','Data Services',38000],['ST-201','Storage Bucket','Data Services',22000],['VM-201','Virtual Server','Data Services',20000]].map(r=>({id:r[0],type:r[1],team:r[2],region:'ap-south-1',rate:r[3]}))});
+let S;try{S=JSON.parse(localStorage.getItem('cm_state'))}catch(e){}
+if(!S||!S.teams)S=seed();
+const save=()=>{try{localStorage.setItem('cm_state',JSON.stringify(S))}catch(e){}};
+let user=null,page='dash',msg='',filter='All';
+const cost=t=>S.res.filter(r=>r.team===t).reduce((a,r)=>a+r.rate,0);
+function status(c,b){if(!(b>0))return{u:null,k:'Undefined',c:'t-na'};const u=c/b*100;return u>=100?{u,k:'Exceeded',c:'t-bad'}:u>=80?{u,k:'Warning',c:'t-warn'}:{u,k:'Within limit',c:'t-ok'}}
+const tag=s=>`<span class="tag ${s.c}">${s.k}</span>`;
+const pct=s=>s.u===null?'—':s.u.toFixed(1)+'%';
+const color=s=>s.c==='t-bad'?'var(--rd)':s.c==='t-warn'?'var(--ye)':s.c==='t-ok'?'var(--gr)':'#ccc';
+const team=t=>{const c=cost(t.id);return{...t,c,s:status(c,t.budget)}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function login(){
+ $('#app').innerHTML=`<div class="login"><div class="art"><svg viewBox="0 0 320 240" role="img" aria-label="Cloud over a server rack house"><rect width="320" height="240" fill="#FDECD4"/><circle cx="250" cy="48" r="26" fill="#F2B33D"/><path d="M40 70c0-18 22-24 34-14 8-16 38-12 40 8 18 0 22 24 4 26H48c-14 0-18-14-8-20z" fill="#fff" stroke="#1B1A33" stroke-width="2"/><path d="M70 120l90-46 90 46v100H70z" fill="#FFF6E8" stroke="#1B1A33" stroke-width="2.5"/><path d="M60 122l100-52 100 52" fill="none" stroke="#1B1A33" stroke-width="10"/><rect x="100" y="140" width="120" height="22" fill="#A5C46B" stroke="#1B1A33" stroke-width="2"/><rect x="100" y="170" width="120" height="22" fill="#3F6FC4" stroke="#1B1A33" stroke-width="2"/><circle cx="116" cy="151" r="4" fill="#1B1A33"/><circle cx="116" cy="181" r="4" fill="#FF7230"/><rect x="140" y="148" width="60" height="6" fill="#1B1A33"/><rect x="140" y="178" width="60" height="6" fill="#1B1A33"/><rect x="22" y="196" width="14" height="30" fill="#A5C46B" stroke="#1B1A33" stroke-width="2"/><circle cx="288" cy="190" r="12" fill="#E8294A" stroke="#1B1A33" stroke-width="2"/></svg><h2>See the bill before it arrives</h2><p class="sub" style="max-width:300px">Track every server, bucket and database by team, and get warned at 80% of budget.</p></div>
+ <form id="lf" novalidate><h1>Sign in</h1>
+ <label for="role">Role</label><select id="role"><option>Admin</option><option>Developer</option></select>
+ <label for="em">Email address</label><input id="em" type="email" autocomplete="username" placeholder="you@company.in">
+ <label for="pw">Password</label><div class="pw"><input id="pw" type="password" autocomplete="current-password"><button type="button" id="eye" aria-label="Show password">${'👁'}</button></div>
+ <div class="err" id="le" role="alert"></div><button class="btn">Continue</button><p class="sub" style="margin-top:14px">Prototype: any valid email and a password of 6+ characters works.</p></form></div>`;
+ $('#eye').onclick=()=>{const p=$('#pw');p.type=p.type==='password'?'text':'password'};
+ $('#lf').onsubmit=e=>{e.preventDefault();const em=$('#em').value.trim(),pw=$('#pw').value;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return $('#le').textContent='Enter a valid email address, like you@company.in.';
+  if(pw.length<6)return $('#le').textContent='Password needs at least 6 characters.';
+  user={email:em,role:$('#role').value};page='dash';shell()}}
+
+function shell(){
+ const items=[['dash','home','Dashboard'],['res','res','Resources'],['bud','bud','Budgets'],['rep','rep','Reports']];
+ $('#app').innerHTML=`<nav aria-label="Main"><svg class="logo" width="30" height="30" viewBox="0 0 30 30"><path d="M8 22c-5 0-5-8 0-8 1-6 11-7 13-1 5-1 6 9 0 9z" fill="#FF7230" stroke="#1B1A33" stroke-width="1.8"/></svg>${items.map(i=>`<button data-p="${i[0]}" ${page===i[0]?'aria-current="page"':''}>${I(i[1])}${i[2]}</button>`).join('')}<span class="sp"></span><button id="lo">${I('out')}Logout</button></nav><main id="m"></main>`;
+ document.querySelectorAll('nav [data-p]').forEach(b=>b.onclick=()=>{page=b.dataset.p;msg='';shell()});
+ $('#lo').onclick=()=>{user=null;login()};
+ ({dash,res,bud,rep})[page]();}
+
+function dash(){
+ const T=S.teams.map(team),tot=T.reduce((a,t)=>a+t.c,0),bt=T.reduce((a,t)=>a+t.budget,0),al=T.filter(t=>t.s.k==='Warning'||t.s.k==='Exceeded'),o=status(tot,bt);
+ $('#m').innerHTML=`<h1>Cloud spend this month</h1><p class="sub">Signed in as ${esc(user.email)} (${user.role})</p>
+ <div class="grid g4"><div class="box kpi"><span>Total spend</span><b>${fmt(tot)}</b></div><div class="box kpi"><span>Resources</span><b>${S.res.length}</b></div><div class="box kpi"><span>Budget left</span><b>${fmt(bt-tot)}</b></div><div class="box kpi"><span>Utilisation</span><b>${pct(o)}</b>${tag(o)}</div></div>
+ <div class="grid g2" style="margin-top:14px"><div class="box"><h2>Budget used by team</h2>${T.map(t=>`<div><div class="row" style="justify-content:space-between;gap:4px"><span>${esc(t.id)}</span><span style="text-align:right">${pct(t.s)}</span></div><div class="bar"><i style="width:${Math.min(t.s.u||0,100)}%;background:${color(t.s)}"></i><u style="left:80%"></u></div></div>`).join('')}<p class="sub" style="margin:6px 0 0">Dashed line marks the 80% warning point.</p></div>
+ <div class="box"><h2>Alerts</h2>${al.length?al.map(t=>`<p style="margin:0 0 10px">${tag(t.s)} <b>${esc(t.id)}</b><br>${fmt(t.c)} of ${fmt(t.budget)} used. ${t.s.k==='Exceeded'?'Over budget by '+fmt(t.c-t.budget)+'.':fmt(t.budget-t.c)+' left.'}</p>`).join(''):'<p>All teams are within budget.</p>'}</div></div>`}
+
+function res(){
+ const adm=user.role==='Admin',rows=S.res.map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.type)}</td><td>${esc(r.team)}</td><td>${esc(r.region)}</td><td>${fmt(r.rate)}</td>${adm?`<td><button class="btn ghost" data-d="${esc(r.id)}" aria-label="Remove ${esc(r.id)}">Remove</button></td>`:''}</tr>`).join('');
+ $('#m').innerHTML=`<h1>Resources</h1><p class="sub">Every server, bucket and database, with its owner and monthly cost.</p>
+ <div class="box wrap"><table><tr><th>ID</th><th>Type</th><th>Team</th><th>Region</th><th>Monthly cost</th>${adm?'<th></th>':''}</tr>${rows}</table></div>
+ ${adm?`<div class="grid g2" style="margin-top:14px"><form class="box" id="af" novalidate><h2>Add a resource</h2><div class="row"><div><label for="a1">ID</label><input id="a1" placeholder="VM-004"></div><div><label for="a2">Type</label><select id="a2"><option>Virtual Server</option><option>Storage Bucket</option><option>Database</option></select></div></div><div class="row"><div><label for="a3">Team</label><select id="a3">${S.teams.map(t=>`<option>${esc(t.id)}</option>`).join('')}</select></div><div><label for="a4">Monthly cost (₹)</label><input id="a4" inputmode="numeric"></div></div><div class="err" id="ae" role="alert"></div><button class="btn">Add resource</button></form>
+ <form class="box" id="xf"><h2>Import XML manifest</h2><textarea id="xm" rows="6" aria-label="XML manifest">&lt;resources&gt;
+  &lt;resource id="VM-004" type="Virtual Server" team="Testing" region="ap-south-1" rate="9000"/&gt;
+  &lt;resource id="VM-001" type="Virtual Server" team="Development" region="ap-south-1" rate="13000"/&gt;
+&lt;/resources&gt;</textarea><div class="err" id="xe" role="alert">${msg}</div><button class="btn">Import manifest</button></form></div>`:'<p class="sub" style="margin-top:14px">Developers can view resources. Adding, importing and removing are Admin actions.</p>'}`;
+ if(!adm)return;
+ document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{S.res=S.res.filter(r=>r.id!==b.dataset.d);save();msg='';shell()});
+ $('#af').onsubmit=e=>{e.preventDefault();const id=$('#a1').value.trim().toUpperCase(),rate=Number($('#a4').value),er=$('#ae');
+  if(!/^[A-Z]{2}-\d{3}$/.test(id))return er.textContent='ID must look like VM-004 (two letters, dash, three digits).';
+  if(S.res.some(r=>r.id===id))return er.textContent=id+' already exists. Remove it first or use XML import to update it.';
+  if(!$('#a4').value||isNaN(rate)||rate<=0)return er.textContent='Monthly cost must be a number above 0.';
+  S.res.push({id,type:$('#a2').value,team:$('#a3').value,region:'ap-south-1',rate});save();shell()};
+ $('#xf').onsubmit=e=>{e.preventDefault();const doc=new DOMParser().parseFromString($('#xm').value,'application/xml'),er=$('#xe');er.className='err';
+  if(doc.querySelector('parsererror'))return er.textContent='Import rejected: the XML is not well formed. Check for unclosed or mismatched tags.';
+  let add=0,upd=0,bad=[];
+  doc.querySelectorAll('resource').forEach((n,i)=>{const id=(n.getAttribute('id')||'').trim(),team=n.getAttribute('team'),rate=Number(n.getAttribute('rate')),type=n.getAttribute('type');
+   if(!id||!type||!S.teams.some(t=>t.id===team)||!(rate>0)){bad.push('#'+(i+1));return}
+   const o={id,type,team,region:n.getAttribute('region')||'ap-south-1',rate},k=S.res.findIndex(r=>r.id===id);
+   if(k>=0){S.res[k]=o;upd++}else{S.res.push(o);add++}});
+  save();msg=`Imported: ${add} added, ${upd} updated${bad.length?', skipped invalid entries '+bad.join(', '):''}.`;shell();$('#xe').className='ok'}}
+
+function denied(){$('#m').innerHTML=`<div class="box denied"><h1>Access denied</h1><p>Budgets and the full alert history are for Admins. Ask an Admin to change your role.</p></div>`}
+
+function bud(){
+ if(user.role!=='Admin')return denied();
+ const T=S.teams.map(team);
+ $('#m').innerHTML=`<h1>Budgets and alerts</h1><p class="sub">Warning at 80% of budget, exceeded at 100%.</p><div class="box wrap"><table><tr><th>Team</th><th>Budget</th><th>Spent</th><th>Left</th><th>Used</th><th>Status</th><th>Set budget (₹)</th></tr>${T.map((t,i)=>`<tr><td>${esc(t.id)}</td><td>${fmt(t.budget)}</td><td>${fmt(t.c)}</td><td>${fmt(t.budget-t.c)}</td><td>${pct(t.s)}</td><td>${tag(t.s)}</td><td><form data-i="${i}" class="row" style="flex-wrap:nowrap" novalidate><input aria-label="New budget for ${esc(t.id)}" style="min-width:90px"><button class="btn ghost" style="flex:none">Save</button></form></td></tr>`).join('')}</table><div class="err" id="be" role="alert">${msg}</div></div>`;
+ document.querySelectorAll('form[data-i]').forEach(f=>f.onsubmit=e=>{e.preventDefault();const v=f.querySelector('input').value.trim();
+  if(v===''||isNaN(v)||Number(v)<=0){msg='Budget must be a number above 0.';return bud()}
+  S.teams[f.dataset.i].budget=Number(v);save();msg='';bud()})}
+
+function rep(){
+ const all=S.teams.map(team),T=filter==='All'?all:all.filter(t=>t.id===filter),mx=Math.max(1,...T.map(t=>Math.max(t.c,t.budget))),W=Math.max(1,T.length)*150+40;
+ const bars=T.map((t,i)=>{const x=40+i*150,h1=t.budget/mx*200,h2=t.c/mx*200;return`<rect x="${x}" y="${230-h1}" width="46" height="${h1}" fill="#FDECD4" stroke="#1B1A33" stroke-width="1.5"/><rect x="${x+50}" y="${230-h2}" width="46" height="${h2}" fill="${color(t.s)}" stroke="#1B1A33" stroke-width="1.5"/><text x="${x+48}" y="250" text-anchor="middle" font-size="11" fill="#1B1A33">${esc(t.id)}</text>`}).join('');
+ $('#m').innerHTML=`<h1>Reports</h1><p class="sub">Budget against spend, by team.</p><div class="row" style="max-width:300px;margin-bottom:14px"><div><label for="ft">Team</label><select id="ft"><option>All</option>${S.teams.map(t=>`<option ${t.id===filter?'selected':''}>${esc(t.id)}</option>`).join('')}</select></div></div>
+ <div class="box wrap"><svg viewBox="0 0 ${W} 262" width="${W}" role="img" aria-label="Budget versus spend bar chart" style="max-width:100%;height:auto"><line x1="30" y1="230" x2="${W}" y2="230" stroke="#1B1A33" stroke-width="1.5"/>${bars}</svg><p class="sub" style="margin:8px 0 0">Left bar: budget. Right bar: spend, coloured by status.</p></div>
+ <div class="box wrap" style="margin-top:14px"><table><tr><th>Team</th><th>Resources</th><th>Spent</th><th>Used</th><th>Status</th></tr>${T.map(t=>`<tr><td>${esc(t.id)}</td><td>${S.res.filter(r=>r.team===t.id).length}</td><td>${fmt(t.c)}</td><td>${pct(t.s)}</td><td>${tag(t.s)}</td></tr>`).join('')}</table></div>`;
+ $('#ft').onchange=e=>{filter=e.target.value;rep()}}
+login();
+</script></body></html>
